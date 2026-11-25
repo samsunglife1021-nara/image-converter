@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사진 형식 바꾸기 사용 설명서</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --bg: #ffffff; --bg-soft: #f2f4f6; --text: #191f28; --text-sub: #6b7684; --line: #e5e8eb; --blue: #3182f6;
+    --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --z: 1;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg-soft); color: var(--text); font-family: var(--font); word-break: keep-all; }
+  h1, h2, h3, p, ol { margin: 0; padding: 0; }
+  .deck { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px 0; }
+  .slide {
+    position: relative; width: 1280px; height: 720px; overflow: hidden;
+    background: var(--bg); border-radius: 16px; zoom: var(--z);
+  }
+  .head { position: absolute; left: 56px; top: 44px; right: 56px; }
+  .chapter { font-size: 16px; font-weight: 700; color: var(--blue); line-height: 1.5; }
+  .head h2 { font-size: 36px; font-weight: 700; line-height: 1.4; margin-top: 4px; }
+  .foot {
+    position: absolute; left: 56px; right: 56px; bottom: 20px;
+    display: flex; justify-content: space-between; font-size: 13px; color: var(--text-sub); line-height: 1.5;
+  }
+  .deck { counter-reset: pg; }
+  .slide { counter-increment: pg; }
+  .pg::before { content: counter(pg); }
+
+  /* 화면 + 상자 */
+  .frame { position: absolute; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .frame img { display: block; }
+  .box {
+    position: absolute; border: 3px solid var(--blue); border-radius: 10px;
+    box-shadow: 0 0 0 2px #fff;
+  }
+  /* 상자 바깥을 어둡게: 화면 영역 안에서만 */
+  .shade { position: absolute; border-radius: 10px; box-shadow: 0 0 0 2000px rgba(25, 31, 40, 0.42); }
+  .num {
+    display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--blue); color: #fff; font-size: 16px; font-weight: 700; line-height: 1;
+  }
+  .box > .num { position: absolute; left: -16px; top: -16px; box-shadow: 0 0 0 3px #fff; }
+  .leader { position: absolute; inset: 0; pointer-events: none; }
+  .leader line { stroke: var(--blue); stroke-width: 2; stroke-dasharray: 6 5; }
+  .leader circle { fill: var(--blue); stroke: #fff; stroke-width: 2; }
+  .callout {
+    position: absolute; padding: 20px 24px 24px; border: 1px solid var(--line); border-left: 4px solid var(--blue);
+    border-radius: 16px; background: var(--bg);
+  }
+  .label { display: flex; align-items: flex-start; gap: 12px; font-size: 22px; font-weight: 700; line-height: 1.4; margin-bottom: 12px; }
+  .label .num { flex: none; margin-top: 0; }
+  .desc { font-size: 17px; line-height: 1.6; padding-left: 16px; position: relative; margin-top: 4px; }
+  .desc::before { content: ""; position: absolute; left: 2px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--text-sub); }
+  .tip { margin-top: 16px; padding: 12px 16px; border-radius: 8px; background: var(--bg-soft); color: var(--text-sub); font-size: 14px; line-height: 1.6; }
+
+  /* 글 슬라이드 */
+  .cards { position: absolute; left: 56px; right: 56px; top: 168px; list-style: none; display: grid; gap: 16px; }
+  .cards.cols-2 { grid-template-columns: 1fr 1fr; }
+  .card { display: flex; gap: 20px; align-items: flex-start; padding: 24px 28px; border-radius: 16px; background: var(--bg-soft); }
+  .step { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--text); color: #fff; font-size: 18px; font-weight: 700; }
+  .card-title { font-size: 22px; font-weight: 700; line-height: 1.5; }
+  .card-desc { font-size: 17px; color: var(--text-sub); line-height: 1.6; margin-top: 4px; }
+  .note { position: absolute; left: 56px; right: 56px; bottom: 64px; font-size: 15px; color: var(--text-sub); line-height: 1.6; padding: 14px 20px; border: 1px solid var(--line); border-radius: 12px; }
+
+  /* 표지 */
+  .cover-text { position: absolute; left: 72px; top: 200px; width: 470px; }
+  .cover h1 { font-size: 56px; font-weight: 700; line-height: 1.3; margin-top: 12px; }
+  .cover .lead { font-size: 20px; line-height: 1.6; margin-top: 24px; color: var(--text); }
+  .cover .meta { font-size: 16px; color: var(--text-sub); margin-top: 32px; line-height: 1.5; }
+  .cover-shot { position: absolute; left: 600px; top: 120px; width: 620px; height: 480px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+  .cover-shot img { width: 100%; display: block; }
+
+  @media print {
+    @page { size: 1280px 720px; margin: 0; }
+    body { background: #fff; }
+    .deck { display: block; padding: 0; }
+    .slide { zoom: 1; border-radius: 0; break-after: page; page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+<main class="deck">
+
+  <section class="slide cover">
+    <div class="cover-text">
+      <p class="chapter">사용 설명서</p>
+      <h1>사진 형식 바꾸기</h1>
+      <p class="lead">사진을 JPG, PNG, WebP로 바꾸고 크기를 줄이는 방법을 한 장씩 알려 드려요.</p>
+      <p class="meta">설치 없이 내 컴퓨터에서 바로 써요</p>
+    </div>
+    <div class="cover-shot"><img src="shots/converted.png" alt="사진을 바꾼 뒤의 화면"></div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">차례</p><h2>이 순서로 쓰면 돼요</h2></header>
+    <ol class="cards cols-2">
+      <li class="card"><span class="step">1</span><div><p class="card-title">화면 열기</p><p class="card-desc">index.html 파일을 두 번 눌러 열어요</p></div></li><li class="card"><span class="step">2</span><div><p class="card-title">사진 올리기</p><p class="card-desc">버튼으로 고르거나 끌어다 놓아요</p></div></li><li class="card"><span class="step">3</span><div><p class="card-title">바꾸는 방법 정하기</p><p class="card-desc">형식과 가로 크기를 골라요</p></div></li><li class="card"><span class="step">4</span><div><p class="card-title">사진 바꾸기</p><p class="card-desc">파란 버튼 하나만 누르면 돼요</p></div></li><li class="card"><span class="step">5</span><div><p class="card-title">내려받기</p><p class="card-desc">바뀐 사진을 한 장씩 저장해요</p></div></li><li class="card"><span class="step">6</span><div><p class="card-title">문제가 생겼을 때</p><p class="card-desc">안내 문구를 보고 바로 고쳐요</p></div></li>
+    </ol>
+    
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">1. 시작하기</p><h2>화면 여는 방법</h2></header>
+    <ol class="cards cols-1">
+      <li class="card"><span class="step">1</span><div><p class="card-title">image-converter 폴더를 열어요</p><p class="card-desc">파일 탐색기(맥은 Finder)에서 내려받은 폴더를 찾아요</p></div></li><li class="card"><span class="step">2</span><div><p class="card-title">index.html 파일을 두 번 눌러요</p><p class="card-desc">크롬, 엣지, 사파리 같은 인터넷 창에 화면이 열려요</p></div></li><li class="card"><span class="step">3</span><div><p class="card-title">&quot;사진 형식 바꾸기&quot; 화면이 보이면 준비 끝이에요</p><p class="card-desc">따로 설치하거나 가입할 것은 없어요</p></div></li>
+    </ol>
+    <p class="note">폴더가 없다면 GitHub 저장소 페이지에서 초록색 Code 버튼 → Download ZIP 으로 받은 뒤 압축을 풀어요.</p>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">1. 시작하기</p><h2>처음 화면</h2></header>
+    <div class="frame" style="left:56px;top:204px;width:780px;height:413px">
+      <img src="shots/empty.png" alt="처음 화면 화면" width="780" height="413">
+      <div class="shade" style="left:4.6px;top:22.1px;width:768.7px;height:57.5px"></div>
+    </div>
+    <div class="box" style="left:61.6px;top:227.1px;width:768.7px;height:57.5px">
+      <span class="num" aria-hidden="true">1</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="830.4" y1="255.8" x2="874" y2="255.8"/>
+      <circle cx="830.4" cy="255.8" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:225.8px;width:340px">
+      <p class="label"><span class="num">1</span>사진은 내 기기 안에서만 바뀌어요</p>
+      <p class="desc">사진을 인터넷으로 보내지 않아요.</p><p class="desc">인터넷 창 안에서 바로 바꾸니 개인 사진도 안심하고 써요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">2. 사진 올리기</p><h2>버튼으로 사진 고르기</h2></header>
+    <div class="frame" style="left:56px;top:204px;width:780px;height:413px">
+      <img src="shots/empty.png" alt="버튼으로 사진 고르기 화면" width="780" height="413">
+      <div class="shade" style="left:213.5px;top:284.4px;width:106.6px;height:49.8px"></div>
+    </div>
+    <div class="box" style="left:270.5px;top:489.4px;width:106.6px;height:49.8px">
+      <span class="num" aria-hidden="true">2</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="377.0" y1="514.3" x2="874" y2="394.0"/>
+      <circle cx="377.0" cy="514.3" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:364.0px;width:340px">
+      <p class="label"><span class="num">2</span>사진 고르기 버튼을 눌러요</p>
+      <p class="desc">사진을 고르는 창이 열려요.</p><p class="desc">여러 장을 한 번에 골라도 돼요.</p>
+      <p class="tip">Ctrl 키(맥은 command 키)를 누른 채 사진을 누르면 여러 장을 함께 고를 수 있어요.</p>
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">2. 사진 올리기</p><h2>끌어다 놓아서 올리기</h2></header>
+    <div class="frame" style="left:56px;top:204px;width:780px;height:413px">
+      <img src="shots/empty.png" alt="끌어다 놓아서 올리기 화면" width="780" height="413">
+      <div class="shade" style="left:22.8px;top:136.7px;width:487.9px;height:227.4px"></div>
+    </div>
+    <div class="box" style="left:79.8px;top:341.7px;width:487.9px;height:227.4px">
+      <span class="num" aria-hidden="true">3</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="567.7" y1="455.4" x2="874" y2="394.0"/>
+      <circle cx="567.7" cy="455.4" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:364.0px;width:340px">
+      <p class="label"><span class="num">3</span>사진을 이곳으로 끌어와요</p>
+      <p class="desc">폴더에서 사진을 끌어 화면 위에 놓으면 바로 올라가요.</p><p class="desc">끄는 동안 &quot;여기에 놓으면 사진이 올라가요&quot; 안내가 보여요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">2. 사진 올리기</p><h2>올린 사진 확인하기</h2></header>
+    <div class="frame" style="left:56px;top:184px;width:780px;height:453px">
+      <img src="shots/uploaded.png" alt="올린 사진 확인하기 화면" width="780" height="453">
+      <div class="shade" style="left:22.8px;top:144.0px;width:487.9px;height:82.6px"></div>
+    </div>
+    <div class="box" style="left:79.8px;top:329.0px;width:487.9px;height:82.6px">
+      <span class="num" aria-hidden="true">4</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="567.7" y1="370.3" x2="874" y2="370.3"/>
+      <circle cx="567.7" cy="370.3" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:340.3px;width:340px">
+      <p class="label"><span class="num">4</span>사진마다 한 줄씩 보여요</p>
+      <p class="desc">작은 미리보기, 파일 이름, 원래 크기를 확인해요.</p><p class="desc">아직 바꾸지 않은 사진은 &quot;아직 바꾸지 않았어요&quot;라고 나와요.</p>
+      <p class="tip">제목 옆 숫자는 올린 사진이 모두 몇 장인지 알려 줘요.</p>
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">2. 사진 올리기</p><h2>사진 더 넣기</h2></header>
+    <div class="frame" style="left:56px;top:184px;width:780px;height:453px">
+      <img src="shots/uploaded.png" alt="사진 더 넣기 화면" width="780" height="453">
+      <div class="shade" style="left:419.6px;top:103.2px;width:91.1px;height:41.1px"></div>
+    </div>
+    <div class="box" style="left:476.6px;top:288.2px;width:91.1px;height:41.1px">
+      <span class="num" aria-hidden="true">5</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="567.7" y1="308.8" x2="874" y2="308.8"/>
+      <circle cx="567.7" cy="308.8" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:278.8px;width:340px">
+      <p class="label"><span class="num">5</span>사진 더 넣기 버튼을 눌러요</p>
+      <p class="desc">이미 올린 사진은 그대로 두고 새 사진을 더해요.</p><p class="desc">끌어다 놓아도 똑같이 더해져요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">2. 사진 올리기</p><h2>잘못 올린 사진 빼기</h2></header>
+    <div class="frame" style="left:56px;top:184px;width:780px;height:453px">
+      <img src="shots/uploaded.png" alt="잘못 올린 사진 빼기 화면" width="780" height="453">
+      <div class="shade" style="left:457.2px;top:163.3px;width:44.0px;height:44.0px"></div>
+    </div>
+    <div class="box" style="left:514.2px;top:348.3px;width:44.0px;height:44.0px">
+      <span class="num" aria-hidden="true">6</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="558.2" y1="370.3" x2="874" y2="370.3"/>
+      <circle cx="558.2" cy="370.3" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:340.3px;width:340px">
+      <p class="label"><span class="num">6</span>X 버튼으로 사진을 빼요</p>
+      <p class="desc">누른 사진 한 장만 목록에서 빠져요.</p><p class="desc">내 컴퓨터에 있는 원래 사진은 지워지지 않아요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">3. 바꾸는 방법 정하기</p><h2>바꿀 형식 고르기</h2></header>
+    <div class="frame" style="left:56px;top:184px;width:780px;height:453px">
+      <img src="shots/uploaded.png" alt="바꿀 형식 고르기 화면" width="780" height="453">
+      <div class="shade" style="left:546.7px;top:160.0px;width:208.5px;height:79.7px"></div>
+    </div>
+    <div class="box" style="left:603.7px;top:345.0px;width:208.5px;height:79.7px">
+      <span class="num" aria-hidden="true">7</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="812.2" y1="384.8" x2="874" y2="384.8"/>
+      <circle cx="812.2" cy="384.8" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:354.8px;width:340px">
+      <p class="label"><span class="num">7</span>세 가지 중 하나를 골라요</p>
+      <p class="desc">JPG: 가장 널리 써요. 처음에는 JPG가 골라져 있어요.</p><p class="desc">PNG: 화질을 그대로 지켜요.</p><p class="desc">WebP: 용량이 작아서 누리집에 올리기 좋아요.</p>
+      <p class="tip">고른 칸은 굵은 테두리와 체크 표시로 보여요.</p>
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">3. 바꾸는 방법 정하기</p><h2>가로 크기 정하기</h2></header>
+    <div class="frame" style="left:56px;top:184px;width:780px;height:453px">
+      <img src="shots/uploaded.png" alt="가로 크기 정하기 화면" width="780" height="453">
+      <div class="shade" style="left:546.7px;top:245.1px;width:208.5px;height:104.4px"></div>
+    </div>
+    <div class="box" style="left:603.7px;top:430.1px;width:208.5px;height:104.4px">
+      <span class="num" aria-hidden="true">8</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="812.2" y1="482.3" x2="874" y2="394.0"/>
+      <circle cx="812.2" cy="482.3" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:364.0px;width:340px">
+      <p class="label"><span class="num">8</span>원하는 가로 크기를 숫자로 넣어요</p>
+      <p class="desc">예를 들어 1200을 넣으면 가로가 1200픽셀이 돼요.</p><p class="desc">세로는 비율에 맞춰 저절로 줄어들어요.</p><p class="desc">비워 두면 원래 크기 그대로예요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">4. 사진 바꾸기</p><h2>사진 바꾸기</h2></header>
+    <div class="frame" style="left:56px;top:184px;width:780px;height:453px">
+      <img src="shots/uploaded.png" alt="사진 바꾸기 화면" width="780" height="453">
+      <div class="shade" style="left:546.7px;top:355.0px;width:208.5px;height:49.8px"></div>
+    </div>
+    <div class="box" style="left:603.7px;top:540.0px;width:208.5px;height:49.8px">
+      <span class="num" aria-hidden="true">9</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="812.2" y1="564.9" x2="874" y2="394.0"/>
+      <circle cx="812.2" cy="564.9" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:364.0px;width:340px">
+      <p class="label"><span class="num">9</span>파란 사진 바꾸기 버튼을 눌러요</p>
+      <p class="desc">올린 사진을 모두 한 번에 바꿔요.</p><p class="desc">바꾸는 동안 &quot;사진을 바꾸고 있어요&quot;가 보여요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">4. 사진 바꾸기</p><h2>다 바뀌었는지 확인하기</h2></header>
+    <div class="frame" style="left:56px;top:159px;width:780px;height:502px">
+      <img src="shots/converted.png" alt="다 바뀌었는지 확인하기 화면" width="780" height="502">
+      <div class="shade" style="left:546.7px;top:401.6px;width:208.5px;height:48.7px"></div>
+    </div>
+    <div class="box" style="left:603.7px;top:561.6px;width:208.5px;height:48.7px">
+      <span class="num" aria-hidden="true">10</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="812.2" y1="585.9" x2="874" y2="394.0"/>
+      <circle cx="812.2" cy="585.9" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:364.0px;width:340px">
+      <p class="label"><span class="num">10</span>버튼 아래 결과 문구를 봐요</p>
+      <p class="desc">&quot;사진 3장을 JPG로 바꿨어요&quot;처럼 몇 장을 바꿨는지 알려 줘요.</p><p class="desc">바꾸지 못한 사진이 있으면 몇 장인지 함께 알려 줘요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">4. 사진 바꾸기</p><h2>사진마다 결과 보기</h2></header>
+    <div class="frame" style="left:56px;top:159px;width:780px;height:502px">
+      <img src="shots/converted.png" alt="사진마다 결과 보기 화면" width="780" height="502">
+      <div class="shade" style="left:87.6px;top:153.4px;width:303.5px;height:80.8px"></div>
+    </div>
+    <div class="box" style="left:144.6px;top:313.4px;width:303.5px;height:80.8px">
+      <span class="num" aria-hidden="true">11</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="448.1" y1="353.8" x2="874" y2="353.8"/>
+      <circle cx="448.1" cy="353.8" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:323.8px;width:340px">
+      <p class="label"><span class="num">11</span>바뀐 형식과 새 크기가 나와요</p>
+      <p class="desc">초록 체크와 함께 &quot;JPG로 바꿨어요&quot;가 보이면 끝난 거예요.</p><p class="desc">아래 줄에서 바뀐 가로·세로 크기를 확인해요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">5. 내려받기</p><h2>바뀐 사진 내려받기</h2></header>
+    <div class="frame" style="left:56px;top:159px;width:780px;height:502px">
+      <img src="shots/converted.png" alt="바뀐 사진 내려받기 화면" width="780" height="502">
+      <div class="shade" style="left:387.9px;top:173.3px;width:75.5px;height:41.1px"></div>
+    </div>
+    <div class="box" style="left:444.9px;top:333.3px;width:75.5px;height:41.1px">
+      <span class="num" aria-hidden="true">12</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="520.4" y1="353.8" x2="874" y2="353.8"/>
+      <circle cx="520.4" cy="353.8" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:323.8px;width:340px">
+      <p class="label"><span class="num">12</span>내려받기 버튼을 눌러요</p>
+      <p class="desc">누른 사진 한 장이 내 컴퓨터에 저장돼요.</p><p class="desc">보통 &quot;다운로드&quot; 폴더에 들어가요.</p><p class="desc">파일 이름은 원래 이름에 새 형식이 붙어요. (여행사진.jpg)</p>
+      <p class="tip">여러 장이면 사진마다 내려받기 버튼을 하나씩 눌러요.</p>
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">5. 내려받기</p><h2>원래보다 크게 넣었을 때</h2></header>
+    <div class="frame" style="left:56px;top:159px;width:780px;height:502px">
+      <img src="shots/converted.png" alt="원래보다 크게 넣었을 때 화면" width="780" height="502">
+      <div class="shade" style="left:87.6px;top:346.3px;width:303.5px;height:97.9px"></div>
+    </div>
+    <div class="box" style="left:144.6px;top:506.3px;width:303.5px;height:97.9px">
+      <span class="num" aria-hidden="true">13</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="448.1" y1="555.2" x2="874" y2="394.0"/>
+      <circle cx="448.1" cy="555.2" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:364.0px;width:340px">
+      <p class="label"><span class="num">13</span>작은 사진은 크기를 그대로 둬요</p>
+      <p class="desc">넣은 가로 크기보다 원래 사진이 작으면 늘리지 않아요.</p><p class="desc">흐려지지 않도록 원래 크기로 바꾸고 그 사실을 알려 줘요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">6. 문제가 생겼을 때</p><h2>사진이 아닌 파일을 올렸을 때</h2></header>
+    <div class="frame" style="left:56px;top:167px;width:780px;height:487px">
+      <img src="shots/notimage.png" alt="사진이 아닌 파일을 올렸을 때 화면" width="780" height="487">
+      <div class="shade" style="left:22.8px;top:144.0px;width:487.9px;height:132.8px"></div>
+    </div>
+    <div class="box" style="left:79.8px;top:312.0px;width:487.9px;height:132.8px">
+      <span class="num" aria-hidden="true">14</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="567.7" y1="378.4" x2="874" y2="378.4"/>
+      <circle cx="567.7" cy="378.4" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:348.4px;width:340px">
+      <p class="label"><span class="num">14</span>&quot;사진 파일만 올릴 수 있어요&quot;가 보여요</p>
+      <p class="desc">어떤 파일이 왜 빠졌는지 알려 줘요.</p><p class="desc">사진은 그대로 올라가고 그 파일만 빠져요.</p><p class="desc">다른 사진 고르기 버튼으로 다시 고르거나 닫기로 안내를 닫아요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">6. 문제가 생겼을 때</p><h2>가로 크기를 잘못 넣었을 때</h2></header>
+    <div class="frame" style="left:105px;top:156px;width:683px;height:508px">
+      <img src="shots/widtherror.png" alt="가로 크기를 잘못 넣었을 때 화면" width="683" height="508">
+      <div class="shade" style="left:478.1px;top:299.9px;width:184.1px;height:117.8px"></div>
+    </div>
+    <div class="box" style="left:584.1px;top:456.9px;width:184.1px;height:117.8px">
+      <span class="num" aria-hidden="true">15</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="768.1" y1="515.8" x2="874" y2="394.0"/>
+      <circle cx="768.1" cy="515.8" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:364.0px;width:340px">
+      <p class="label"><span class="num">15</span>숫자만 넣어 달라고 알려 줘요</p>
+      <p class="desc">&quot;가로 800&quot;처럼 글자가 섞이면 쓸 수 없어요.</p><p class="desc">800처럼 숫자만 다시 넣어요.</p><p class="desc">원래 크기로 두기 버튼을 누르면 칸이 비워져요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">7. 휴대폰에서 쓰기</p><h2>휴대폰 화면에서도 똑같이 써요</h2></header>
+    <div class="frame" style="left:286px;top:156px;width:320px;height:508px">
+      <img src="shots/mobile.png" alt="휴대폰 화면에서도 똑같이 써요 화면" width="320" height="1073">
+      <div class="shade" style="left:20.0px;top:146.6px;width:277.5px;height:156.6px"></div>
+    </div>
+    <div class="box" style="left:307.0px;top:303.6px;width:277.5px;height:156.6px">
+      <span class="num" aria-hidden="true">16</span>
+    </div>
+    <svg class="leader" width="1280" height="720" aria-hidden="true">
+      <line x1="584.5" y1="381.9" x2="874" y2="381.9"/>
+      <circle cx="584.5" cy="381.9" r="4"/>
+    </svg>
+    <div class="callout" style="left:884px;top:351.9px;width:340px">
+      <p class="label"><span class="num">16</span>위에서 아래로 차례대로 보여요</p>
+      <p class="desc">올린 사진이 먼저 보이고, 아래에 바꾸는 방법이 이어져요.</p><p class="desc">내려받기와 X 버튼은 사진 아래에 있어서 누르기 쉬워요.</p>
+      
+    </div>
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+
+  <section class="slide">
+    <header class="head"><p class="chapter">알아 두기</p><h2>이것만 기억하면 돼요</h2></header>
+    <ol class="cards cols-2">
+      <li class="card"><span class="step">1</span><div><p class="card-title">형식이나 크기를 바꾸면 다시 눌러요</p><p class="card-desc">설정을 바꾸면 이전 결과가 지워져요. 사진 바꾸기를 다시 눌러요.</p></div></li><li class="card"><span class="step">2</span><div><p class="card-title">투명한 배경은 JPG에서 흰색이 돼요</p><p class="card-desc">투명함을 지키려면 PNG나 WebP를 골라요.</p></div></li><li class="card"><span class="step">3</span><div><p class="card-title">창을 닫으면 목록이 비워져요</p><p class="card-desc">필요한 사진은 닫기 전에 내려받아요.</p></div></li><li class="card"><span class="step">4</span><div><p class="card-title">사진은 밖으로 나가지 않아요</p><p class="card-desc">모든 일이 내 인터넷 창 안에서만 일어나요.</p></div></li>
+    </ol>
+    
+    <footer class="foot"><span>사진 형식 바꾸기 사용 설명서</span><span class="pg"></span></footer>
+  </section>
+</main>
+<script>
+  function fit() { var z = Math.min(1, (window.innerWidth - 32) / 1280); document.documentElement.style.setProperty('--z', z); }
+  fit(); window.addEventListener('resize', fit);
+</script>
+</body>
+</html>
